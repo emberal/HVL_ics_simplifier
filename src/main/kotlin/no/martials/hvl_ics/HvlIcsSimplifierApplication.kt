@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class HvlIcsSimplifierApplication
 
 fun main(args: Array<String>) {
-	runApplication<HvlIcsSimplifierApplication>(*args)
+    runApplication<HvlIcsSimplifierApplication>(*args)
 }
