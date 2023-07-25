@@ -1,3 +1,2 @@
 app:
-  save:
-    path: src/main/resources/static
+  savepath: src/main/resources/static
