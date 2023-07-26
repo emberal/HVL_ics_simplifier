@@ -25,6 +25,9 @@ class IcsService {
     @Value("\${app.path.get}")
     private lateinit var getpath: String
 
+    @Value("\${app.basepath}")
+    private lateinit var basepath: String
+
     fun validate(url: URL): Boolean = url.protocol contentEquals "https" and
             url.host.contains("cloud.timeedit.net") and
             url.path.endsWith("ics")
@@ -60,7 +63,7 @@ class IcsService {
         val fout = FileOutputStream("$savepath/$filename")
         val outputter = CalendarOutputter()
         outputter.output(calendar, fout)
-        return URI("$getpath/$filename")
+        return URI("$basepath/$getpath/$filename")
     }
 
     fun createIcs(uri: URL): URI {

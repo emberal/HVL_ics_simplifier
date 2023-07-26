@@ -1,2 +1,3 @@
 app:
   savepath: /opt/tomcat/files
+  basepath: https://api.martials.no/hvl_ics_simplifier
