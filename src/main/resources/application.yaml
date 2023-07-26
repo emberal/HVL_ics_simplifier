@@ -1,2 +1,8 @@
+spring:
+  profiles:
+    active: @activatedProperties@
+
 app:
-  savepath: src/main/resources/static
+  path:
+    get: get
+

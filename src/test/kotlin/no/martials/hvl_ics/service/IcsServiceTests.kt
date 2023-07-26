@@ -2,14 +2,23 @@ package no.martials.hvl_ics.service
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.net.URI
 
 class IcsServiceTests {
 
     private lateinit var icsService: IcsService
+    private val validUrl =
+        "https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
 
     @BeforeEach
     fun setUp() {
         icsService = IcsService()
+    }
+
+    @Test
+    fun `test valid url`() {
+        val url = URI(validUrl).toURL()
+        assert(icsService.validate(url))
     }
 
     @Test

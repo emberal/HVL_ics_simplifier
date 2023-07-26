@@ -1,2 +1,0 @@
-### Generates a new ics file, and returns the files location
-GET http://localhost:8080/ics

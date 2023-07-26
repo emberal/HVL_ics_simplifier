@@ -12,31 +12,27 @@ import org.springframework.stereotype.Service
 import java.io.FileOutputStream
 import java.io.StringReader
 import java.net.URI
+import java.net.URL
 
 @Service
 class IcsService {
 
     private final val logger = LoggerFactory.getLogger(IcsService::class.java)
 
-    // TODO fetch at regular intervals
-    private final val url =
-        "https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
-
-    private lateinit var ics: Calendar
-
     @Value("\${app.savepath}")
     private lateinit var savepath: String
 
-    init {
-        var icsString: String
-        logger.debug("Reading ics from url: {}", url)
-        URI(url).toURL().openStream().use { input ->
-            logger.debug("Reading data {}", input)
-            icsString = String(input.readBytes())
-        }
+    @Value("\${app.path.get}")
+    private lateinit var getpath: String
+
+    fun validate(url: URL): Boolean = url.protocol contentEquals "https" and
+            url.host.contains("cloud.timeedit.net") and
+            url.path.endsWith("ics")
+
+    fun createCalendar(url: URL): Calendar {
+        val icsString = readIcsFrom(url)
         val sin = StringReader(icsString)
-        val builder = CalendarBuilder()
-        val calendar = builder.build(sin)
+        val calendar = CalendarBuilder().build(sin)
 
         calendar.validate()
 
@@ -45,16 +41,32 @@ class IcsService {
             val description = event.getProperty<Property>(Property.DESCRIPTION)
             summary.value = fixSummary(summary.value, description.value)
         }
-
-        logger.debug("Created ics calendar: {}", calendar)
-        ics = calendar
+        return calendar
     }
 
-    fun createIcs(filename: String): URI {
-        val fout = FileOutputStream("$savepath/$filename.ics")
+    fun readIcsFrom(url: URL): String {
+        var icsString: String
+        url.openStream().use { input ->
+            logger.debug("Reading data {}", input)
+            icsString = String(input.readBytes())
+        }
+        return icsString
+    }
+
+    fun createIcsFile(filename: String, calendar: Calendar): URI {
+        if (!filename.endsWith(".ics")) {
+            throw IllegalArgumentException("Filename must end with .ics")
+        }
+        val fout = FileOutputStream("$savepath/$filename")
         val outputter = CalendarOutputter()
-        outputter.output(ics, fout)
-        return URI("/$filename.ics")
+        outputter.output(calendar, fout)
+        return URI("$getpath/$filename")
+    }
+
+    fun createIcs(uri: URL): URI {
+        val calendar = createCalendar(uri)
+        val filename = uri.path.substringAfterLast("/")
+        return createIcsFile(filename, calendar)
     }
 
     private fun fixSummary(summary: String, description: String): String {
@@ -71,7 +83,7 @@ class IcsService {
     }
 
     fun getType(description: String): String? {
-        val descriptionRegex: Regex = Regex("videokonferanse|forelesning|lab|øving", RegexOption.IGNORE_CASE)
+        val descriptionRegex = Regex("videokonferanse|forelesning|lab|øving", RegexOption.IGNORE_CASE)
         val result = descriptionRegex.find(description)
         return result?.value?.replaceFirstChar { it.uppercase() }
     }
