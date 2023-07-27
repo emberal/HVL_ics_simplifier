@@ -10,7 +10,7 @@
     </parent>
     <groupId>no.martials</groupId>
     <artifactId>hvl_ics</artifactId>
-    <version>0.2.1</version>
+    <version>0.2.2</version>
     <packaging>war</packaging>
     <name>HVL_ics_simplifier</name>
     <description>HVL_ics_simplifier</description>

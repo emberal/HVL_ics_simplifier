@@ -6,6 +6,7 @@ import net.fortuna.ical4j.model.Calendar
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
+import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.validate.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -19,6 +20,7 @@ import java.net.URL
 class IcsService {
 
     private final val logger = LoggerFactory.getLogger(IcsService::class.java)
+    private final val typeRegex = Regex("videokonferanse|forelesning|datalab|øving", RegexOption.IGNORE_CASE)
 
     @Value("\${app.savepath}")
     private lateinit var savepath: String
@@ -47,14 +49,34 @@ class IcsService {
      * @return the Calendar object created from the iCalendar file.
      * @throws ValidationException if the iCalendar file is not valid.
      */
-    fun createCalendar(url: URL): Calendar {
+    fun createCalendar(url: URL, demokratitid: Boolean = false): Calendar {
         val icsString = readIcsFrom(url)
         val sin = StringReader(icsString)
         val calendar = CalendarBuilder().build(sin)
 
         calendar.validate()
+
+        if (!demokratitid) {
+            removeDemokratitid(calendar)
+        }
+
         replaceSummary(calendar)
         return calendar
+    }
+
+    /**
+     * Removes all calendar events with the summary containing "demokratitid" (case-insensitive) from the given calendar.
+     *
+     * @param calendar The calendar from which to remove the events.
+     */
+    fun removeDemokratitid(calendar: Calendar) {
+        val componentsToRemove = calendar.components
+            .filterIsInstance<VEvent>()
+            .filter { it.summary.value.contains("demokratitid", true) }
+            .toMutableList()  // Avoid concurrent modification
+
+        // Remove the components
+        componentsToRemove.forEach { calendar.components.remove(it) }
     }
 
     /**
@@ -73,8 +95,7 @@ class IcsService {
     fun replaceSummary(calendar: Calendar) {
         calendar.getComponents<CalendarComponent>(Component.VEVENT).forEach { event ->
             val summary = event.getProperty<Property>(Property.SUMMARY)
-            val description = event.getProperty<Property>(Property.DESCRIPTION)
-            summary.value = fixSummary(summary.value, description.value)
+            summary.value = fixSummary(event)
         }
     }
 
@@ -117,22 +138,25 @@ class IcsService {
      * @param uri the URL of the calendar source.
      * @return the URI of the generated ICS file.
      */
-    fun createIcs(uri: URL): URI {
-        val calendar = createCalendar(uri)
+    fun createIcs(uri: URL, demokratitid: Boolean = false): URI {
+        val calendar = createCalendar(uri, demokratitid)
         val filename = uri.path.substringAfterLast("/") // TODO use title found in .ics instead
         return createIcsFile(filename, calendar)
     }
 
     /**
-     * Fixes the summary by combining the summary and description.
+     * Returns a fixed summary for the given calendar component.
      *
-     * @param summary the summary of the item
-     * @param description the description of the item
-     * @return the fixed summary
+     * @param calendar The calendar component for which to fix the summary.
+     * @return The fixed summary as a string.
      */
-    private fun fixSummary(summary: String, description: String): String {
-        var result = getEmne(summary)
-        val type = getType(description)
+    private fun fixSummary(calendar: CalendarComponent): String {
+        val summary = calendar.getProperty<Property>(Property.SUMMARY)
+        val description = calendar.getProperty<Property>(Property.DESCRIPTION)
+        val location = calendar.getProperty<Property>(Property.LOCATION)
+
+        var result = getEmne(summary.value)
+        val type = getType(description.value) ?: getType(location.value)
         if (type != null) {
             result += " $type"
         }
@@ -150,14 +174,16 @@ class IcsService {
     }
 
     /**
-     * Retrieves the type of an event based on its description.
+     * Retrieves the type of an event based on the property.
      *
-     * @param description The description of the event.
+     * @param property A property of the event.
      * @return The type of the event if it matches certain keywords, null otherwise.
      */
-    fun getType(description: String): String? {
-        val descriptionRegex = Regex("videokonferanse|forelesning|lab|øving", RegexOption.IGNORE_CASE)
-        val result = descriptionRegex.find(description)
+    fun getType(property: String): String? {
+        val result = typeRegex.find(property)
+        if (result?.value.equals("datalab", true)) {
+            return "Lab"
+        }
         return result?.value?.replaceFirstChar { it.uppercase() }
     }
 

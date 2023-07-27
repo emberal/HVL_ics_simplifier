@@ -21,7 +21,10 @@ class IcsController(val icsService: IcsService) {
 
     // TODO option to hide demokratitid
     @PutMapping("/create")
-    fun createIcs(@RequestBody url: String): ResponseEntity<Unit> {
+    fun createIcs(
+        @RequestBody url: String,
+        @RequestParam(defaultValue = "false") demokratitid: Boolean
+    ): ResponseEntity<Unit> {
         logger.info("Received request to create ics from uri: {}", url)
 
         val urlObj = URI(url).toURL()
@@ -30,8 +33,8 @@ class IcsController(val icsService: IcsService) {
             return ResponseEntity.badRequest().build()
         }
 
-        val createIcs = icsService.createIcs(urlObj)
-        logger.info("Create ics at {}", createIcs)
+        val createIcs = icsService.createIcs(urlObj, demokratitid)
+        logger.info("Created ics at {}", createIcs)
         return ResponseEntity.created(createIcs).build()
     }
 
