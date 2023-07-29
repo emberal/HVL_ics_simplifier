@@ -11,6 +11,7 @@ import net.fortuna.ical4j.validate.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.io.File
 import java.io.FileOutputStream
 import java.io.StringReader
 import java.net.URI
@@ -126,6 +127,12 @@ class IcsService {
         if (!filename.endsWith(".ics")) {
             throw IllegalArgumentException("Filename must end with .ics")
         }
+
+        val dir = File(savepath)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+
         val fout = FileOutputStream("$savepath/$filename")
         val outputter = CalendarOutputter()
         outputter.output(calendar, fout)
