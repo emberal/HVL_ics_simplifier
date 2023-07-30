@@ -1,11 +1,13 @@
 # HVL TimeEdit .ics simplifier
 
----
 By: Martin Berg Alstad
 
 ## Before / after
 
-TODO: Add images
+Before:
+![Before](src/main/resources/images/Calendar%20before.png)
+After:
+![After](src/main/resources/images/Calendar%20after.png)
 
 ## Usage
 
