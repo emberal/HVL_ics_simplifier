@@ -30,4 +30,4 @@ jobs:
     - name: Build with Maven
       run: mvn clean package -P prod
     - name: Upload artifact
-      run: sudo cp $(find . -name "*.war") /opt/tomcat/webapps
+      run: sudo install -o tomcat -g tomcat -m 644 $(find . -name "*.war") "/opt/tomcat/webapps"
