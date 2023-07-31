@@ -24,6 +24,13 @@ class IcsController(val icsService: IcsService) {
     @Value("\${app.basepath}")
     private lateinit var basepath: String
 
+    /**
+     * Creates an ICS (iCalendar) file from the given URL.
+     *
+     * @param url The URL from which the ICS file should be created.
+     * @return A ResponseEntity with a status code of 201 (Created) and the URI of the newly created ICS file in the "Location" header, or
+     *         a ResponseEntity with a status code of 400 (Bad Request) if the provided URL is not valid or supported.
+     */
     @PutMapping("/create")
     fun createIcs(@RequestBody url: String): ResponseEntity<Unit> {
         logger.info("Received request to create ics from url: {}", url)
@@ -39,6 +46,13 @@ class IcsController(val icsService: IcsService) {
         return ResponseEntity.created(URI("$basepath/ics/$pathToIcs")).build()
     }
 
+    /**
+     * Creates and retrieves an .ics file based on the URI provided in the request.
+     *
+     * @param request The HttpServletRequest object containing the request information.
+     * @param demokratitid A boolean parameter, defaulting to false, indicating whether the .ics file should include Demokratitid data or not.
+     * @return A ResponseEntity object with the .ics file as an InputStreamResource, or a bad request response if the URI is invalid.
+     */
     @GetMapping("/**")
     fun createAndGetIcs(
         request: HttpServletRequest,
@@ -60,6 +74,13 @@ class IcsController(val icsService: IcsService) {
         return getFile(pathToIcs) { ResponseEntity.created(URI("$basepath/ics/$pathToIcs")) }
     }
 
+    /**
+     * Retrieves a saved file based on the given filename.
+     *
+     * @param filename The filename of the saved file to retrieve.
+     * @return The ResponseEntity containing the InputStreamResource of the file,
+     *         or a not found response if the file does not exist.
+     */
     @GetMapping("/ics/{filename:.+}")
     fun getSavedFile(@PathVariable filename: String): ResponseEntity<InputStreamResource> {
         logger.info("Received request to get file: {}", filename)
@@ -70,6 +91,13 @@ class IcsController(val icsService: IcsService) {
     private fun toAbsoluteUri(uri: String): String =
         "https://${uri.substring(if (uri.startsWith("/https")) 8 else 1)}"
 
+    /**
+     * Retrieves the file from the given URI.
+     *
+     * @param uri The URI of the file to retrieve.
+     * @param response The optional response function used to customize the HTTP response. The default response is an OK status.
+     * @return The ResponseEntity containing the file as an InputStreamResource if it exists, or a Not Found status if the file does not exist.
+     */
     private fun getFile(
         uri: URI,
         response: () -> BodyBuilder = { ResponseEntity.ok() }
