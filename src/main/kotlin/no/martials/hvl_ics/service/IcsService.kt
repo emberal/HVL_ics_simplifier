@@ -26,12 +26,6 @@ class IcsService {
     @Value("\${app.savepath}")
     private lateinit var savepath: String
 
-    @Value("\${app.path.get}")
-    private lateinit var getpath: String
-
-    @Value("\${app.basepath}")
-    private lateinit var basepath: String
-
     /**
      * Validates if the given URL is a valid HTTPS URL pointing to a timeedit calendar file (ICS format).
      *
@@ -136,7 +130,7 @@ class IcsService {
         val fout = FileOutputStream("$savepath/$filename")
         val outputter = CalendarOutputter()
         outputter.output(calendar, fout)
-        return URI("$basepath/$getpath/$filename")
+        return URI(filename)
     }
 
     /**
@@ -147,7 +141,7 @@ class IcsService {
      */
     fun createIcs(uri: URL, demokratitid: Boolean = false): URI {
         val calendar = createCalendar(uri, demokratitid)
-        val filename = uri.path.substringAfterLast("/") // TODO use title found in .ics instead
+        val filename = uri.path.substringAfterLast("/")
         return createIcsFile(filename, calendar)
     }
 

@@ -10,7 +10,7 @@
     </parent>
     <groupId>no.martials</groupId>
     <artifactId>hvl_ics</artifactId>
-    <version>0.2.3</version>
+    <version>0.3.0</version>
     <packaging>war</packaging>
     <name>HVL_ics_simplifier</name>
     <description>HVL_ics_simplifier</description>
@@ -30,6 +30,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.1.0</version>
         </dependency>
 
         <dependency>

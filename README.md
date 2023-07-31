@@ -16,7 +16,9 @@ After:
 ```bash
 # Replace url with your own
 url=https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics
-curl -o -X PUT https://api.martials.no/hvl_ics_simplifier/create -H "Content-Type: text/plain" -d "$url"
+curl -o --location --request PUT 'https://api.martials.no/hvl_ics_simplifier/create' \
+--header 'Content-Type: text/plain' \
+--data $url
 ```
 
 ### Get improved .ics file
@@ -25,7 +27,14 @@ curl -o -X PUT https://api.martials.no/hvl_ics_simplifier/create -H "Content-Typ
 # Replace with response from create
 file=ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics
 # To see the file
-curl https://api.martials.no/hvl_ics_simplifier/get/$file
+curl https://api.martials.no/hvl_ics_simplifier/ics/$file
 # To download the file
-wget https://api.martials.no/hvl_ics_simplifier/get/$file
+wget https://api.martials.no/hvl_ics_simplifier/ics/$file
+```
+
+### Create and get improved .ics file
+
+```bash
+path=cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics
+curl -o https://api.martials.no/hvl_ics_simplifier/$path
 ```
