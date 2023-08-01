@@ -1,9 +1,10 @@
 package no.martials.hvl_ics.service
 
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import java.net.URI
 
 class IcsServiceTests {
@@ -86,6 +87,29 @@ class IcsServiceTests {
     fun `test show demokratitid`() {
         val calendar = icsService.createCalendar(URI(validUrl).toURL(), true)
         assertTrue(calendar.toString().contains("demokratitid", true))
+    }
+
+    @Test
+    fun `test to absolute URL when absolute`() {
+        val absoluteUrl = icsService.toAbsoluteUri(validUrl)
+        assertEquals(validUrl, absoluteUrl.toString())
+        assertTrue(absoluteUrl.scheme == "https")
+    }
+
+    @ParameterizedTest
+    @ValueSource(
+        strings = [
+            "/cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics",
+            "cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
+        ]
+    )
+    fun `test to absolute URL when relative`(uriString: String) {
+        val absoluteUri = icsService.toAbsoluteUri(uriString)
+        assertEquals(
+            URI("https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"),
+            absoluteUri
+        )
+        assertTrue(absoluteUri.scheme == "https")
     }
 
 }

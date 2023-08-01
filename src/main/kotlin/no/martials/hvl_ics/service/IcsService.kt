@@ -18,7 +18,7 @@ import java.net.URI
 import java.net.URL
 
 @Service
-class IcsService {
+final class IcsService {
 
     private final val logger = LoggerFactory.getLogger(IcsService::class.java)
     private final val typeRegex = Regex("videokonferanse|forelesning|datalab|øving", RegexOption.IGNORE_CASE)
@@ -33,9 +33,10 @@ class IcsService {
      * @return `true` if the URL is a valid HTTPS URL pointing to a timeedit calendar file (ICS format),
      *         `false` otherwise.
      */
-    fun validate(url: URL): Boolean = url.protocol contentEquals "https" and
-            url.host.contains("cloud.timeedit.net") and
-            url.path.endsWith("ics")
+    fun validate(url: URL): Boolean =
+        url.protocol contentEquals "https" and
+                url.host.contains("cloud.timeedit.net") and
+                url.path.endsWith(".ics")
 
     /**
      * Creates a Calendar object from the provided URL.
@@ -64,15 +65,12 @@ class IcsService {
      *
      * @param calendar The calendar from which to remove the events.
      */
-    fun removeDemokratitid(calendar: Calendar) {
-        val componentsToRemove = calendar.components
+    fun removeDemokratitid(calendar: Calendar) = // TODO test
+        calendar.components
             .filterIsInstance<VEvent>()
             .filter { it.summary.value.contains("demokratitid", true) }
             .toMutableList()  // Avoid concurrent modification
-
-        // Remove the components
-        componentsToRemove.forEach { calendar.components.remove(it) }
-    }
+            .forEach { calendar.components.remove(it) }
 
     /**
      * Replaces the value of the summary property with a more readable value.
@@ -87,12 +85,10 @@ class IcsService {
      * @see Property
      * @see fixSummary
      */
-    fun replaceSummary(calendar: Calendar) {
-        calendar.getComponents<CalendarComponent>(Component.VEVENT).forEach { event ->
-            val summary = event.getProperty<Property>(Property.SUMMARY)
-            summary.value = fixSummary(event)
-        }
-    }
+    fun replaceSummary(calendar: Calendar) =
+        calendar.components
+            .filterIsInstance<VEvent>()
+            .forEach { it.getProperty<Property>(Property.SUMMARY).value = fixSummary(it) }
 
     /**
      * Reads the content of an ICS file from the specified URL.
@@ -117,20 +113,26 @@ class IcsService {
      * @return The URI of the created ICS file.
      * @throws IllegalArgumentException If the given filename does not end with ".ics".
      */
-    fun createIcsFile(filename: String, calendar: Calendar): URI {
+    fun createIcsFile(filename: String, calendar: Calendar) {
         if (!filename.endsWith(".ics")) {
             throw IllegalArgumentException("Filename must end with .ics")
         }
 
-        val dir = File(savepath)
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
+        createDirIfNotExists()
 
         val fout = FileOutputStream("$savepath/$filename")
         val outputter = CalendarOutputter()
         outputter.output(calendar, fout)
-        return URI(filename)
+    }
+
+    /**
+     * Creates a directory in the specified savepath if it does not already exist.
+     */
+    private fun createDirIfNotExists() {
+        val dir = File(savepath)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
     }
 
     /**
@@ -142,7 +144,8 @@ class IcsService {
     fun createIcs(uri: URL, demokratitid: Boolean = false): URI {
         val calendar = createCalendar(uri, demokratitid)
         val filename = uri.path.substringAfterLast("/")
-        return createIcsFile(filename, calendar)
+        createIcsFile(filename, calendar)
+        return URI(filename)
     }
 
     /**
@@ -170,9 +173,8 @@ class IcsService {
      * @param summary the summary from which to extract the "Emne" string
      * @return the extracted "Emne" string
      */
-    fun getEmne(summary: String): String {
-        return summary.substringAfter("Emne: ").substringBefore(",")
-    }
+    fun getEmne(summary: String) =
+        summary.substringAfter("Emne: ").substringBefore(",")
 
     /**
      * Retrieves the type of an event based on the property.
@@ -187,5 +189,18 @@ class IcsService {
         }
         return result?.value?.replaceFirstChar { it.uppercase() }
     }
+
+    /**
+     * Converts a URI string to an absolute URI.
+     *
+     * @param uri the URI string to convert to absolute URI
+     * @return the absolute URI object
+     */
+    fun toAbsoluteUri(uri: String): URI =
+        if (uri.startsWith("https://")) {
+            URI(uri)
+        } else {
+            URI("https://${uri.substring(uri.indexOf("cloud.timeedit.net"))}")
+        }
 
 }

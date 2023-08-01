@@ -14,9 +14,9 @@ import java.io.FileNotFoundException
 import java.net.URI
 
 @RestController
-class IcsController(val icsService: IcsService) {
+final class IcsController(private val icsService: IcsService) {
 
-    private final val logger = LoggerFactory.getLogger(IcsController::class.java)
+    private val logger = LoggerFactory.getLogger(IcsController::class.java)
 
     @Value("\${app.savepath}")
     private lateinit var savepath: String
@@ -63,7 +63,7 @@ class IcsController(val icsService: IcsService) {
 
         logger.info("Received request to create ics from uri: {}", uri)
 
-        val urlObj = URI(toAbsoluteUri(uri)).toURL()
+        val urlObj = icsService.toAbsoluteUri(uri).toURL()
 
         if (!icsService.validate(urlObj)) {
             return ResponseEntity.badRequest().build()
@@ -86,10 +86,6 @@ class IcsController(val icsService: IcsService) {
         logger.info("Received request to get file: {}", filename)
         return getFile(URI(filename))
     }
-
-    // TODO replcae with more robust solution
-    private fun toAbsoluteUri(uri: String): String =
-        "https://${uri.substring(if (uri.startsWith("/https")) 8 else 1)}"
 
     /**
      * Retrieves the file from the given URI.
