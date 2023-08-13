@@ -20,7 +20,7 @@ jobs:
     runs-on: self-hosted
 
     env:
-      TEST_ICS_PATH: HVL_ics_simplifier/HVL_ics_simplifier/target/test-classes/files
+      TEST_ICS_PATH: ./HVL_ics_simplifier/HVL_ics_simplifier/target/test-classes/files
 
     steps:
       - uses: actions/checkout@v3
@@ -30,6 +30,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+      - run: ls -la $TEST_ICS_PATH # This is just to check if the path is correct
       - name: Build with Maven
         run: mvn clean package -P prod
       - name: Upload artifact
