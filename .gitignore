@@ -34,5 +34,4 @@ build/
 .vscode/
 
 ### Project ###
-/src/main/resources/static/
-*.ics
+/src/main/resources/**/*
