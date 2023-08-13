@@ -20,7 +20,7 @@ jobs:
     runs-on: self-hosted
 
     env:
-      TEST_ICS_PATH: /opt/ghrunners/hvl_ics_simplifier/_work/HVL_ics_simplifier/HVL_ics_simplifier/target/test-classes/files
+      TEST_ICS_PATH: target/test-classes/files # TODO File not found
 
     steps:
       - uses: actions/checkout@v3
@@ -30,6 +30,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: maven
+      - run: echo $GITHUB_WORKSPACE
       - name: Build with Maven
         run: mvn clean package -P prod
       - name: Upload artifact
