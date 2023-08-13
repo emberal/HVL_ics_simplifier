@@ -15,7 +15,8 @@ import java.net.URL
 
 class IcsServiceTests {
 
-    private val icsPath = "src/test/resources/files/TimeEdit_INF_2021_H2023.ics"
+    private val icsPath = (System.getenv("TEST_ICS_PATH") ?: "src/test/resources/files") +
+            "/TimeEdit_INF_2021_H2023.ics"
     private val validUrl =
         "https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
 
