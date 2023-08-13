@@ -1,23 +1,52 @@
 package no.martials.hvl_ics.service
 
+import com.squareup.okhttp.mockwebserver.MockResponse
+import com.squareup.okhttp.mockwebserver.MockWebServer
+import net.fortuna.ical4j.model.Calendar
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import java.io.FileInputStream
 import java.net.URI
+import java.net.URL
 
 class IcsServiceTests {
 
-    private lateinit var icsService: IcsService
-
-    // TODO replace with downloaded ics file
+    private val icsPath = "src/test/resources/files/TimeEdit_INF_2021_H2023.ics"
     private val validUrl =
         "https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
 
+    private lateinit var icsService: IcsService
+    private lateinit var calendar: Calendar
+    private lateinit var server: MockWebServer
+
     @BeforeEach
     fun setUp() {
+        val url = setupMockServer()
         icsService = IcsService()
+        calendar = icsService.createCalendar(url, true)
+    }
+
+    private fun setupMockServer(): URL {
+        server = MockWebServer()
+        server.start()
+
+        FileInputStream(icsPath).use { file ->
+            server.enqueue(
+                MockResponse()
+                    .setResponseCode(200)
+                    .setBody(String(file.readAllBytes()))
+            )
+        }
+        return server.getUrl("/")
+    }
+
+    @AfterEach
+    fun tearDown() {
+        server.shutdown()
     }
 
     @Test
@@ -79,13 +108,12 @@ class IcsServiceTests {
 
     @Test
     fun `test hide demokratitid`() {
-        val calendar = icsService.createCalendar(URI(validUrl).toURL(), false)
+        icsService.removeDemokratitid(calendar)
         assertFalse(calendar.toString().contains("demokratitid", true))
     }
 
     @Test
     fun `test show demokratitid`() {
-        val calendar = icsService.createCalendar(URI(validUrl).toURL(), true)
         assertTrue(calendar.toString().contains("demokratitid", true))
     }
 
@@ -98,10 +126,7 @@ class IcsServiceTests {
 
     @ParameterizedTest
     @ValueSource(
-        strings = [
-            "/cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics",
-            "cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
-        ]
+        strings = ["/cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics", "cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"]
     )
     fun `test to absolute URL when relative`(uriString: String) {
         val absoluteUri = icsService.toAbsoluteUri(uriString)
