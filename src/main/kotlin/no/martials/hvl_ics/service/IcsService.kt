@@ -65,7 +65,7 @@ final class IcsService {
      *
      * @param calendar The calendar from which to remove the events.
      */
-    fun removeDemokratitid(calendar: Calendar) = // TODO test
+    fun removeDemokratitid(calendar: Calendar) =
         calendar.components
             .filterIsInstance<VEvent>()
             .filter { it.summary.value.contains("demokratitid", true) }

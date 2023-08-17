@@ -9,14 +9,17 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.springframework.test.util.ReflectionTestUtils
+import java.io.File
 import java.io.FileInputStream
 import java.net.URI
 import java.net.URL
 
 class IcsServiceTests {
 
-    private val icsPath = (System.getenv("TEST_ICS_PATH") ?: "src/test/resources/files") +
-            "/TimeEdit_INF_2021_H2023.ics"
+    private val basePath = System.getenv("TEST_BASE_PATH") ?: "src/test/resources/files"
+
+    private val icsPath = "$basePath/TimeEdit_INF_2021_H2023.ics"
     private val validUrl =
         "https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"
 
@@ -136,6 +139,24 @@ class IcsServiceTests {
             absoluteUri
         )
         assertTrue(absoluteUri.scheme == "https")
+    }
+
+    @Test
+    fun `test createIcsFile filename does not end in ics`() {
+        val filename = "test"
+        assertThrows(IllegalArgumentException::class.java) {
+            icsService.createIcsFile(filename, calendar)
+        }
+    }
+
+    @Test
+    fun `test createIcsFile filename ends in ics`() {
+        val filename = "test.ics"
+        ReflectionTestUtils.setField(icsService, "savepath", basePath)
+        assertDoesNotThrow {
+            icsService.createIcsFile(filename, calendar)
+        }
+        File("$basePath/$filename").delete()
     }
 
 }
