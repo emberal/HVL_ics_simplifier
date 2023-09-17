@@ -20,7 +20,7 @@ jobs:
     runs-on: self-hosted
 
     env:
-      TEST_ICS_PATH: target/test-classes/files
+      TEST_BASE_PATH: target/test-classes/files
 
     steps:
       - uses: actions/checkout@v3
