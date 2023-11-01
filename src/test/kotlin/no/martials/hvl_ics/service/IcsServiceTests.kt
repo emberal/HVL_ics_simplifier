@@ -138,7 +138,7 @@ class IcsServiceTests {
             URI("https://cloud.timeedit.net/hvl/web/studbergen/ri6305Q64k59u6QZQtQn270QZQ8QY43dZ6317Z0y6580CwtZ00AZ87D9690F55D7EAEBF27863FFDA6.ics"),
             absoluteUri
         )
-        assertTrue(absoluteUri.scheme == "https")
+        assertEquals(absoluteUri.scheme, "https")
     }
 
     @Test

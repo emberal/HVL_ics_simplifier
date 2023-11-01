@@ -8,6 +8,7 @@ import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.CalendarComponent
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.validate.ValidationException
+import org.jetbrains.annotations.Contract
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -33,9 +34,10 @@ final class IcsService {
      * @return `true` if the URL is a valid HTTPS URL pointing to a timeedit calendar file (ICS format),
      *         `false` otherwise.
      */
+    @Contract(pure = true)
     fun validate(url: URL): Boolean =
-        url.protocol contentEquals "https" and
-                url.host.contains("cloud.timeedit.net") and
+        url.protocol contentEquals "https" &&
+                url.host.contains("cloud.timeedit.net") &&
                 url.path.endsWith(".ics")
 
     /**
@@ -45,6 +47,7 @@ final class IcsService {
      * @return the Calendar object created from the iCalendar file.
      * @throws ValidationException if the iCalendar file is not valid.
      */
+    @Contract(pure = true)
     fun createCalendar(url: URL, demokratitid: Boolean = false): Calendar {
         val icsString = readIcsFrom(url)
         val sin = StringReader(icsString)
@@ -85,7 +88,7 @@ final class IcsService {
      * @see Property
      * @see fixSummary
      */
-    fun replaceSummary(calendar: Calendar) =
+    fun replaceSummary(calendar: Calendar) = // TODO test
         calendar.components
             .filterIsInstance<VEvent>()
             .forEach { it.getProperty<Property>(Property.SUMMARY).value = fixSummary(it) }
@@ -96,7 +99,7 @@ final class IcsService {
      * @param url the URL of the ICS file
      * @return the content of the ICS file as a String
      */
-    fun readIcsFrom(url: URL): String {
+    private fun readIcsFrom(url: URL): String {
         var icsString: String
         url.openStream().use { input ->
             logger.debug("Reading data {}", input)
@@ -173,6 +176,7 @@ final class IcsService {
      * @param summary the summary from which to extract the "Emne" string
      * @return the extracted "Emne" string
      */
+    @Contract(pure = true)
     fun getEmne(summary: String) =
         summary.substringAfter("Emne: ").substringBefore(",")
 
@@ -196,6 +200,7 @@ final class IcsService {
      * @param uri the URI string to convert to absolute URI
      * @return the absolute URI object
      */
+    @Contract(pure = true)
     fun toAbsoluteUri(uri: String): URI =
         if (uri.startsWith("https://")) {
             URI(uri)
