@@ -19,7 +19,7 @@ import java.net.URI
 import java.net.URL
 
 @Service
-final class IcsService {
+final class IcsService(private val fileService: FileService) {
 
     private final val logger = LoggerFactory.getLogger(IcsService::class.java)
     private final val typeRegex = Regex("videokonferanse|forelesning|datalab|øving", RegexOption.IGNORE_CASE)
@@ -47,7 +47,6 @@ final class IcsService {
      * @return the Calendar object created from the iCalendar file.
      * @throws ValidationException if the iCalendar file is not valid.
      */
-    @Contract(pure = true)
     fun createCalendar(url: URL, demokratitid: Boolean = false): Calendar {
         val icsString = readIcsFrom(url)
         val sin = StringReader(icsString)
@@ -99,14 +98,8 @@ final class IcsService {
      * @param url the URL of the ICS file
      * @return the content of the ICS file as a String
      */
-    private fun readIcsFrom(url: URL): String {
-        var icsString: String
-        url.openStream().use { input ->
-            logger.debug("Reading data {}", input)
-            icsString = String(input.readBytes())
-        }
-        return icsString
-    }
+    private fun readIcsFrom(url: URL): String =
+        String(fileService.readFrom(url).readBytes())
 
     /**
      * Creates an ICS file with the given filename and calendar data.
@@ -121,21 +114,11 @@ final class IcsService {
             throw IllegalArgumentException("Filename must end with .ics")
         }
 
-        createDirIfNotExists()
+        fileService.createDirIfNotExists(savepath)
 
         val fout = FileOutputStream("$savepath/$filename")
         val outputter = CalendarOutputter()
         outputter.output(calendar, fout)
-    }
-
-    /**
-     * Creates a directory in the specified savepath if it does not already exist.
-     */
-    private fun createDirIfNotExists() {
-        val dir = File(savepath)
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
     }
 
     /**

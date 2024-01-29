@@ -30,7 +30,7 @@ class IcsServiceTests {
     @BeforeEach
     fun setUp() {
         val url = setupMockServer()
-        icsService = IcsService()
+        icsService = IcsService(FileService())
         calendar = icsService.createCalendar(url, true)
     }
 
