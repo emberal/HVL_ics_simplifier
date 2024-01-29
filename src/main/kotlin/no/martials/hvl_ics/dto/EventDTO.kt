@@ -1,7 +1,5 @@
 package no.martials.hvl_ics.dto
 
-import net.fortuna.ical4j.model.Calendar
-import org.jetbrains.annotations.Contract
 import java.time.LocalDateTime
 
 data class EventDTO(
@@ -14,9 +12,8 @@ data class EventDTO(
     val rom: List<String>,
     val antallPlasser: List<Int>
 ) {
-    
-    @Contract(pure = true)
-    fun toCSV(): Calendar {
-        throw Exception("TODO")
-    }
+
+    val summary: String
+        get() = throw NotImplementedError()
+
 }

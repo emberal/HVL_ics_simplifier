@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Contract
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import java.io.File
 import java.io.FileOutputStream
 import java.io.StringReader
 import java.net.URI
@@ -71,7 +70,7 @@ final class IcsService(private val fileService: FileService) {
         calendar.components
             .filterIsInstance<VEvent>()
             .filter { it.summary.value.contains("demokratitid", true) }
-            .toMutableList()  // Avoid concurrent modification
+            .toMutableList() // Avoid concurrent modification
             .forEach { calendar.components.remove(it) }
 
     /**
@@ -98,8 +97,14 @@ final class IcsService(private val fileService: FileService) {
      * @param url the URL of the ICS file
      * @return the content of the ICS file as a String
      */
-    private fun readIcsFrom(url: URL): String =
-        String(fileService.readFrom(url).readBytes())
+    private fun readIcsFrom(url: URL): String {
+        var icsString: String
+        url.openStream().use { input ->
+            icsString = String(input.readBytes())
+            logger.debug("Reading data {}", icsString)
+        }
+        return icsString
+    }
 
     /**
      * Creates an ICS file with the given filename and calendar data.

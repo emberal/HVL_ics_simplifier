@@ -17,20 +17,8 @@ class FileService {
     fun createDirIfNotExists(savepath: String) {
         val dir = File(savepath)
         if (!dir.exists()) {
+            logger.info("Creating directory: {}", savepath)
             dir.mkdirs()
-        }
-    }
-
-    /**
-     * Reads the content of a file from the specified URL.
-     *
-     * @param url the URL of the file
-     * @return the content of the file as an InputStream
-     */
-    fun readFrom(url: URL): InputStream {
-        url.openStream().use { input ->
-            logger.debug("Reading data {}", input)
-            return input
         }
     }
 
